@@ -1,0 +1,173 @@
+Chris Mills
+ITM 350
+21st January 2026
+
+*** Git Instructions ***
+
+Add:
+    Moves changes from the current working directory on your device into the staging area of Git so that it is ready to be included in the next commit. It does not send anything to GitHub
+
+	git add <filename>
+		- stages changes in the specific file
+	git add <directoryname>/
+		- stages changes in a specific directory and all its subdirectories
+	git add .
+		- stages changes in the current directory and its subdirectories
+	git add [--all][-A]
+		- stages changes across the entire repo regardless of working directory
+	git add [--update][-u]
+		- stages changes to updated and deleted files but ignores untracked files
+	git add [--patch][-p]
+		- starts an interactive session allowing you to select certain 'hunks' of changes within a file, instead of the whole file at once.
+
+Push:
+    Updates your local commits to the remote repository
+
+	git push <remote> <branch> 
+		- pushes the commits in the current branch to the remote repository
+	git push -u origin secret_path
+		- Sets the upstream tracking branch so future pushes can be just git push.
+		- example: git push -u origin branch_name, tells git that you are pushing to the 'origin' repository and pushing the branch_name branch. From then on, you can simply use git push and git pull to move commits back and forth from that repo and branch.
+		- --set-upstream is the full equivalent of -u
+	git push -f 
+		- force changes to the remote repo, usually used when you have used rebase or reset on your local branch. Use with caution!
+		- --force is the full equivalent of -f
+	git push --force-with-lease
+		- safer than using -f as it will not change the remote if the remote has changed since the last pull/fetch
+	git push --all
+		- pushes changes to all branches
+	git push origin --delete brach_name
+		- deletes a branch in the remote repo
+	git push -n
+		- performs a dry run, showing what would be pushed without actually pushing it
+		--dry-run is the equivalent
+
+Pull:
+    downloads changes from a remote repository, integrating changes into your current branch. In essence it combines git fetch, and git merge into one command
+	git pull 
+	git pull --rebase
+		- instead of merging remote changes, it rebases your local commits on top of the remote branch, allowing you to keep the timeline cleaner.
+		- if the remote branch has moved forward, git downloads the changes first and then replays your commits on top of the latest remote commits.
+	git pull -ff-only
+		- fastforward only, if your branch can be updated cleanly by fast-forwarding, it will work. If git would need to merge, it fails.
+		  this is only really useful if you have no local commits that have worked on.
+	git pull --autostash
+		- if you have local uncomitted changes, rebase normally fails. This temporarily stashe your changes, rebases, the re-applies them
+	git pull remote_name branch_name
+		- explicitly pull from a particular remote repo and branch name
+
+
+Changing the Origin URL:
+    if you are changing from http to ssh, or the ower of a repo has renamed the repo, git allows you to change the origin URL by using the following command.
+	git remote set-url origin https://github.com/<user>/<repo>.git
+
+
+Stash:
+    Temporarily saves your uncomitted changes (modified files) somewhere safe before resetting your working directory back to clean. This is useful when you need to pull or switch branches but you have work in progress, when you are not ready to commit yet, or you want to test something quickly without losing current edits.
+	git stash
+		- stashes your current changes
+	git stash push -m "Work in progress, login pages"
+		- stash current work with a description
+	git stash list
+		- show current stashes
+	git stash apply
+		- Apply the latest stash
+	git stash apply stash@{2}
+		- apply a specific stash
+	git stash pop
+		- works like an array, applies and removes from the stash list
+	git stash drop stash@{2}
+		- Delete a specific stash
+	git stash clear
+		- delete all stashes
+	git stash -u
+		- include new files that arent staged yet
+		- full version of this switch is --include-untracked
+	git stash -a
+		- include untracked and ignored files.
+		- full version of this switch is --all
+
+Revert:
+    Creates a new commit that reverses the changes from the previous commit. Useful when you have already pushed a bad commit, when you want to undo a commit without rewriting the history, or when you are working in shared branches.
+	git revert HEAD
+		- reverts the most recent commit
+	git revert <commit_hash>
+		- reverts a specific commit
+	git revert <old_hash>..<new_hash>
+		- reverts multiple commits
+	git revert --no-edit HEAD
+		- Accepts the default revert message and witholds prompt messages
+	git revert -n <hash>
+		- stage the revert changes but dont commit them yet, allows you to combine multiple reverts into one commit.
+
+Reset:
+    Moves your current branch to a point at a different commit. It can also unstage files, wipe local changes. Useful when you want to undo local commits, when you accidentally commited something, or you wat to rewind your branch. Rewrite can rewrite the history if commits were already pushed.
+	git reset --soft HEAD~1
+		- Moves HEAD back but keeps the changes staged
+	git reset HEAD~1
+		- Moves HEAD back and unstages changes keeping edits in the files.
+	git reset -hard HEAD~1
+		- Moves HEAD back and deletes staged and working changes
+	git reset HEAD file.txt
+		- unstage a file, keeping the edits.
+ 
+log:
+    Displays the commit history of your repository or branch. Useful for viewing past commits or messages, retirving commit hashes, seeing a timeline of changes.
+	git log 
+		- shows basic history
+	git log --oneline
+		- shows a short, readable history
+	git log --oneline --graph --decorate --all
+		- shows a pretty, "branch tree" view of the history
+	git log -n 5
+		- shows a limited number of commits, in this case it will show 5
+	git log -- path_to_file.txt
+		- shows only commits for a file
+	git log -p
+		- Shows the actual changes mode to code for each commit.
+	git log --author="Chris"
+		- filter commits by author
+	git log --since"2026-01-01" --until="2026-01-22"
+		- show commits filtered by date
+	
+diff:
+    Shows the differenes between working directory, staged changes, and commits. Useful when you want to review your work before committing.
+	git diff
+		- Shows changes between the working directory and the staging (unstaged changes) area.
+	git diff --stages
+		- shows differences between the staging area and the ast commit (staged changes).
+	git diff HEAD
+		- shows differences between the workign directory and the last commit.
+	git diff <commit1> <commit2>
+		- compare the changes between 2 comitts
+	git diff main..secret_path
+		- compares the differences between 2 branches,
+	git diff --name-only
+		- shows only changed filenames
+	git diff --stat
+		- summary of changes
+	git diff --word-dif
+		- word-level diff, great for docs.
+	git diff -w 
+		- ignore whitespace, useful for removing formatting noise.
+
+
+show:
+    Shows information abouot a commit such as author, date, message, and the patch (actual code difference). Useful for inspecting commits and seeing exactly what a commit changed.
+	git show 
+		- shows the most recent commit
+	git show <commit_hash>
+		- shows details from a sepcific commit.
+	git show --oneline <hash_code>
+		- shows details from a specific has in a oneline format.
+	git show --name-only <hash_code>
+		- shows only the changed filenames
+	git show --stat <hash_code>
+		- shows a summary (added and deleted line counts)
+	git show --no-patch <hash_code>
+		- dont show the code patch
+	git show <hash_code>:path/to/file.txt
+		- AMAZING command to show old versions of files.
+
+
+
