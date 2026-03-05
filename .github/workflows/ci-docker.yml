@@ -25,7 +25,7 @@ jobs:
           cache-dependency-path: bulletin-board-app/package-lock.json
 
       - name: Install dependencies
-        run: npm run install
+        run: npm run ci
         working-directory: bulletin-board-app
 
       - name: Run tests
