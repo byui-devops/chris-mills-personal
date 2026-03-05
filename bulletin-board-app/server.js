@@ -6,7 +6,7 @@ var express        = require('express'),
     routes         = require('./backend'),
     api            = require('./backend/api');
 
-var app = module.exports = express();
+var app = express();
 
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
@@ -34,5 +34,11 @@ app.get('/api/events', api.events);
 app.post('/api/events', api.event);
 app.delete('/api/events/:eventId', api.event);
 
-app.listen(8080);
-console.log('Magic happens on port 8080...');
+/* istanbul ignore next */
+if (require.main === module) {
+  const port = process.env.PORT || 8080;
+  app.listen(port);
+  console.log(`Magic happens on port ${port}...`);
+}
+
+module.exports = app;
