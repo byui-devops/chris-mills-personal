@@ -22,15 +22,19 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
+          cache-dependency-path: bulletin-board-app/package-lock.json
 
       - name: Install dependencies
         run: npm run install
+        working-directory: bulletin-board-app
 
       - name: Run tests
         run: npm run test
+        working-directory: bulletin-board-app
 
       - name: Run coverage
         run: npm run test:coverage
+        working-directory: bulletin-board-app
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -44,7 +48,7 @@ jobs:
       - name: Build and push Docker image (latest + sha)
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./bulletin-board-app
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/bulletin-board-app:latest
