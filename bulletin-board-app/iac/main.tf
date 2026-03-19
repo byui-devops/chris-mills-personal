@@ -17,8 +17,8 @@ resource "aws_security_group" "app_sg" {
   name = "app_sg"
 
   ingress {
-    from_port   = 3000
-    to_port     = 3000
+    from_port   = 8080
+    to_port     = 8080
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -50,10 +50,10 @@ resource "aws_instance" "app_server" {
 
               cd /home/ubuntu
               git clone https://github.com/byui-devops/chris-mills-personal.git
-              cd chris-mills-personal/bulletin-board-app/app
+              cd /home/ubuntu/chris-mills-personal/bulletin-board-app
 
               npm install
-              npm start
+              nohup npm start > app.log 2>&1 &
               EOF
 
   tags = {
