@@ -1,103 +1,63 @@
-const request = require("supertest");
-const { spawn } = require("node:child_process");
+/**
+ * Unit Test: events data module
+ * Pattern: Arrange-Act-Assert (AAA)
+ *
+ * Each test follows the three-phase AAA structure:
+ *   Arrange – set up preconditions and inputs
+ *   Act     – execute the unit under test
+ *   Assert  – verify the expected outcome
+ *
+ * Contributed by: Josue Raudales
+ */
 
-// These tests are intentionally small and focused. We reload ../server for
-// some cases to execute different code paths in server.js.
+const events = require("../backend/events");
 
-describe("API routes", () => {
-  test("GET /api/events returns 200 (Simple-Test Pattern)", async () => {
-    const app = require("../server");
-    const res = await request(app).get("/api/events");
-    expect(res.status).toBe(200);
+describe("Events data module (AAA Pattern)", () => {
+  test("should export a non-empty array of events", () => {
+    // Arrange – nothing extra needed; the module is already loaded
+
+    // Act
+    const result = events;
+
+    // Assert
+    expect(Array.isArray(result)).toBe(true);
+    expect(result.length).toBeGreaterThan(0);
   });
 
-  test("POST /api/events creates an event (Code-Path Pattern)", async () => {
-    const app = require("../server");
-    const newEvent = { title: "Unit Test Event", detail: "detail", date: "2026-02-03" };
-    const res = await request(app).post("/api/events").send(newEvent);
-    expect([200, 201, 204]).toContain(res.status);
+  test("every event should have an id, title, and date", () => {
+    // Arrange
+    const requiredKeys = ["id", "title", "date"];
+
+    // Act & Assert
+    events.forEach((event) => {
+      requiredKeys.forEach((key) => {
+        expect(event).toHaveProperty(key);
+      });
+    });
   });
 
-  test("DELETE /api/events/:id is reachable (Simple-Test Pattern)", async () => {
-    const app = require("../server");
-    const res = await request(app).delete("/api/events/0");
-    expect([200, 204, 404]).toContain(res.status);
+  test("every event id should be a unique number", () => {
+    // Arrange
+    const ids = events.map((e) => e.id);
+
+    // Act
+    const uniqueIds = new Set(ids);
+
+    // Assert
+    expect(uniqueIds.size).toBe(ids.length);
+    ids.forEach((id) => {
+      expect(typeof id).toBe("number");
+    });
   });
 
-  test("server.js runs development branch when NODE_ENV=development (Code-Path Pattern)", async () => {
-    const prev = process.env.NODE_ENV;
-    process.env.NODE_ENV = "development";
+  test("event dates should be valid ISO-format strings (YYYY-MM-DD)", () => {
+    // Arrange
+    const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
-    jest.resetModules();
-    const app = require("../server");
-
-    const res = await request(app).get("/api/events");
-    expect(res.status).toBe(200);
-
-    process.env.NODE_ENV = prev;
-  });
-
-  test("server.js runs production branch when NODE_ENV=production (Code-Path Pattern)", async () => {
-    const prev = process.env.NODE_ENV;
-    process.env.NODE_ENV = "production";
-
-    jest.resetModules();
-    const app = require("../server");
-
-    const res = await request(app).get("/api/events");
-    expect(res.status).toBe(200);
-
-    process.env.NODE_ENV = prev;
-  });
-
-  test("server.js starts when executed directly (covers require.main branch)", async () => {
-    await new Promise((resolve, reject) => {
-      const child = spawn(process.execPath, ["server.js"], {
-        cwd: process.cwd(),
-        env: { ...process.env, PORT: "0" },
-        stdio: ["ignore", "pipe", "pipe"],
-      });
-
-      let out = "";
-      let err = "";
-      let finished = false;
-
-      const timeout = setTimeout(() => {
-        if (finished) return;
-        finished = true;
-        child.kill();
-        reject(new Error(`Timed out waiting for server.js to start. stderr: ${err}`));
-      }, 3000);
-
-      child.stdout.on("data", (buf) => {
-        out += buf.toString();
-        if (out.includes("Magic happens on port")) {
-          // Stop the server and resolve once the process actually exits.
-          child.kill();
-        }
-      });
-
-      child.stderr.on("data", (buf) => {
-        err += buf.toString();
-      });
-
-      child.on("error", (e) => {
-        if (finished) return;
-        finished = true;
-        clearTimeout(timeout);
-        reject(e);
-      });
-
-      child.on("exit", () => {
-        if (finished) return;
-        finished = true;
-        clearTimeout(timeout);
-        if (out.includes("Magic happens on port")) {
-          resolve();
-        } else {
-          reject(new Error(`server.js exited without starting. stderr: ${err}`));
-        }
-      });
+    // Act & Assert
+    events.forEach((event) => {
+      expect(event.date).toMatch(isoDateRegex);
+      expect(isNaN(Date.parse(event.date))).toBe(false);
     });
   });
 });
